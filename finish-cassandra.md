@@ -22,18 +22,17 @@
       <div class="feature col div-choice">
         <div class="scenario-completed">Lab Completed. Congratulations!</div>
         <br/>
-        <div class="scenario-objectives">In this hands-on lab, you explored:</div>
+        <div class="scenario-objectives">In this hands-on lab, you learned about:</div>
         <ul>
-              <li><span class="scenario-objective">CQL queries and the <code>SELECT</code> statement</span></li>
-              <li><span class="scenario-objective">Efficient data access patterns</span></li>
-              <li><span class="scenario-objective">Equality and inequality predicates</span></li>
-              <li><span class="scenario-objective">Grouping rows and computing aggregates</span></li>
-              <li><span class="scenario-objective">Ordering rows based on the table clustering order</span></li>
-              <li><span class="scenario-objective">Other CQL querying capabilities</span></li>
+              <li><span class="scenario-objective">Universally unique identifier (UUID) data types</span></li>
+              <li><span class="scenario-objective">Collection data types</span></li>
+              <li><span class="scenario-objective">Tuple data type</span></li>
+              <li><span class="scenario-objective">User-defined types (UDTs)</span></li>
+              <li><span class="scenario-objective">Counter data type</span></li>
         </ul>
         <div class="resources">Learn more about Cassandra on <a href="https://datastax.com/dev" target="_blank">datastax.com/dev</a>:</div>
         <ul>
-              <li><span class="resource"><a href="https://datastax.com/learning-series/cassandra-fundamentals" target="_blank">Cassandra Fundamentals</a></span></li>        
+              <li><span class="resource"><a href="https://datastax.com/learn/cassandra-fundamentals" target="_blank">Cassandra Fundamentals</a></span></li>        
               <li><span class="resource"><a href="https://www.datastax.com/learn/data-modeling-by-example" target="_blank">Data Modeling by Example</a></span></li>
         </ul>
       </div>
