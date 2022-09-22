@@ -13,19 +13,18 @@
     <div class="container px-4 py-2">
      <div class="row g-4 py-2 row-cols-1 row-cols-lg-1">
       <div class="feature col div-choice">
-            <div class="scenario-description">Learn how to retrieve data from a Cassandra NoSQL database.</div>
+            <div class="scenario-description">Learn about universally unique identifiers (UUIDs), collections, tuples, user-defined types (UDTs) and counters.</div>
             <ul>
-              <li><span class="scenario-description-attribute">Difficulty</span>: Beginner</li>
+              <li><span class="scenario-description-attribute">Difficulty</span>: Intermediate</li>
               <li><span class="scenario-description-attribute">Time</span>: 20 minutes</li>
             </ul>
-            <div class="scenario-objectives">In this hands-on lab, you will:</div>
+            <div class="scenario-objectives">In this hands-on lab, you will learn about:</div>
             <ul>
-              <li><span class="scenario-objective">Query tables using the CQL <code>SELECT</code> statement</span></li>
-              <li><span class="scenario-objective">Understand efficient data access patterns</span></li>
-              <li><span class="scenario-objective">Learn about equality and inequality predicates</span></li>
-              <li><span class="scenario-objective">Group rows and compute aggregates</span></li>
-              <li><span class="scenario-objective">Order rows based on the table clustering order</span></li>
-              <li><span class="scenario-objective">Use other CQL querying capabilities</span></li>
+              <li><span class="scenario-objective">Universally unique identifier (UUID) data types</span></li>
+              <li><span class="scenario-objective">Collection data types</span></li>
+              <li><span class="scenario-objective">Tuple data type</span></li>
+              <li><span class="scenario-objective">User-defined types (UDTs)</span></li>
+              <li><span class="scenario-objective">Counter data type</span></li>
             </ul>
       </div>
      </div>
