@@ -12,8 +12,8 @@
  <a href='command:katapod.loadPage?[{"step":"step9-cassandra"}]'
    class="btn btn-dark navigation-top-left">⬅️ Back
  </a>
-<span class="step-count"> Step 10 of 11</span>
- <a href='command:katapod.loadPage?[{"step":"step11-cassandra"}]'
+<span class="step-count"> Step 10 of 10</span>
+ <a href='command:katapod.loadPage?[{"step":"finish-cassandra"}]'
     class="btn btn-dark navigation-top-right">Next ➡️
   </a>
 </div>
@@ -52,7 +52,7 @@ ORDER BY title DESC, year ASC;
  <a href='command:katapod.loadPage?[{"step":"step9-astra"}]'
    class="btn btn-dark navigation-top-left">⬅️ Back
  </a>
- <a href='command:katapod.loadPage?[{"step":"step11-astra"}]'
+ <a href='command:katapod.loadPage?[{"step":"finish-astra"}]'
     class="btn btn-dark navigation-top-right">Next ➡️
   </a>
 </div>
