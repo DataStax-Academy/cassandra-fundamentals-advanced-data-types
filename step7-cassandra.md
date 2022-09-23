@@ -20,96 +20,31 @@
 
 <!-- CONTENT -->
 
-<div class="step-title">Querying table "ratings_by_movie"</div>
+<div class="step-title">Nested collections</div>
 
-Table `ratings_by_movie` stores information about ratings organized by movies, 
-such that each partition contains all ratings for one particular movie. 
-This table has multi-row partitions and 
-the primary key defined as `PRIMARY KEY ((title, year), email)`. 
-Let's first retrieve all rows from the table to learn how the data looks like and then focus 
-on predicates that the primary key can support.
+It is also possible to define collection data types that contain nested collections, such as *list of maps* or 
+*set of sets of sets*. A nested collection definition has to be designated as `FROZEN`, which means that a nested collection 
+is stored as a single blob value and manipulated as a whole. In other words, when an individual element 
+of a frozen collection needs to be updated, the entire collection must be overwritten. As a result, nested collections 
+are generally less efficient unless they hold immutable or rarely changing data. 
 
-<br/>
-
-✅ Q1. Retrieve all rows:
-<details>
-  <summary>Solution</summary>
-
+✅ Let's alter table `movies` again to be able to store movie casts and crews in column `crew` of type `MAP<TEXT,FROZEN<LIST<TEXT>>>`:
 ```
-SELECT * FROM ratings_by_movie;
+ALTER TABLE movies 
+ADD crew MAP<TEXT,FROZEN<LIST<TEXT>>>;
+SELECT title, year, crew FROM movies;
 ```
 
-</details>
-
-<br/>
-
-✅ Q2. Retrieve one partition:
-<details>
-  <summary>Solution</summary>
-
+✅ Add a movie crew:
 ```
-SELECT * FROM ratings_by_movie
-WHERE title = 'Alice in Wonderland'
-  AND year  = 2010;
+UPDATE movies 
+SET crew = { 
+  'cast': ['Johnny Depp', 'Mia Wasikowska'], 
+  'directed by': ['Tim Burton']
+ }
+WHERE id = 5069cc15-4300-4595-ae77-381c3af5dc5e;
+SELECT title, year, crew FROM movies;
 ```
-
-</details>
-
-<br/>
-
-✅ Q3. Retrieve two partitions:
-<details>
-  <summary>Solution</summary>
-
-```
-SELECT * FROM ratings_by_movie
-WHERE title = 'Alice in Wonderland'
-  AND year IN (2010, 1951);
-```
-
-</details>
-
-<br/>
-
-✅ Q4. Retrieve one row:
-<details>
-  <summary>Solution</summary>
-
-```
-SELECT * FROM ratings_by_movie
-WHERE title = 'Alice in Wonderland'
-  AND year  = 2010
-  AND email = 'joe@datastax.com';
-```
-
-</details>
-
-<br/>
-
-✅ Q5 - Q6. Retrieve a subset of rows from a partition:
-<details>
-  <summary>Solution 1</summary>
-
-```
-SELECT * FROM ratings_by_movie
-WHERE title = 'Alice in Wonderland'
-  AND year  = 2010
-  AND email IN ('jen@datastax.com', 
-                'jim@datastax.com');
-```
-
-</details>
-<details>
-  <summary>Solution 2</summary>
-
-```
-SELECT * FROM ratings_by_movie
-WHERE title = 'Alice in Wonderland'
-  AND year  = 2010
-  AND email < 'job@datastax.com';
-```
-
-</details>
 
 <!-- NAVIGATION -->
 <div id="navigation-bottom" class="navigation-bottom">

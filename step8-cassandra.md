@@ -20,56 +20,27 @@
 
 <!-- CONTENT -->
 
-<div class="step-title">Using aggregates and functions</div>
+<div class="step-title">Tuples</div>
 
-CQL aggregates include `COUNT`, `SUM`, `AVG`, `MIN` and `MAX`. CQL also 
-supports many functions, of which we will showcase `CAST`, `NOW`, and `TODATE`. 
-It is also possible to create user-defined aggregates and functions using 
-statements `CREATE AGGREGATE` and `CREATE FUNCTION`. We will create a function to calculate 
-the number of days between two dates. Study and execute the following query examples.
+A *tuple* is a fixed-length list, where values can be of different types. 
+To define a tuple data type, 
+Cassandra Query Language provides construct `TUPLE<type1,type2,..., typeN>`, 
+where `type1` , `type2` , ... , `typeN` can refer to same or different CQL data types, including 
+`INT`, `DATE`, `UUID` and so forth. 
 
-✅ Q1. Analize ratings for the movie:
+✅ Here is an example of a `TUPLE` column:
 ```
-SELECT COUNT(rating) AS count,
-       SUM(rating) AS sum,
-       AVG(CAST(rating AS FLOAT)) AS avg,
-       MIN(rating) AS min,
-       MAX(rating) AS max
-FROM   ratings_by_movie
-WHERE  title = 'Alice in Wonderland'
-  AND  year  = 2010;
-```
+ALTER TABLE users ADD full_name TUPLE<TEXT,TEXT,TEXT>;
 
-✅ Q2. Find the user name, date of joining and current date:
-```
-SELECT name, 
-       date_joined, 
-       TODATE(NOW()) AS date_today
-FROM   users
-WHERE  email = 'joe@datastax.com';
+UPDATE users 
+SET full_name = ('Joe', 'The', 'Great')
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+
+SELECT name, full_name FROM users;
 ```
 
-✅ Q3. Calculate how many days passed since the user joined:
-```
-CREATE FUNCTION IF NOT EXISTS 
-  DAYS_BETWEEN_DATES(date1 TEXT, date2 TEXT) 
-RETURNS NULL ON NULL INPUT 
-RETURNS BIGINT 
-LANGUAGE Java AS 
-'return java.lang.Math.abs(
-   java.time.temporal.ChronoUnit.DAYS.between(
-     java.time.LocalDate.parse(date1), 
-     java.time.LocalDate.parse(date2)
-   )
- );';
-
-SELECT name, 
-       DAYS_BETWEEN_DATES( 
-         CAST(date_joined   AS TEXT), 
-         CAST(TODATE(NOW()) AS TEXT) ) AS days
-FROM   users
-WHERE  email = 'joe@datastax.com';
-```
+Unlike UDTs, individual tuple components cannot be updated without updating the whole tuple. Therefore, 
+you should *always prefer UDTs to tuples*.
 
 <!-- NAVIGATION -->
 <div id="navigation-bottom" class="navigation-bottom">

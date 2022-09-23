@@ -20,32 +20,73 @@
 
 <!-- CONTENT -->
 
-<div class="step-title">Ordering rows</div>
+<div class="step-title">Counters</div>
 
-Cassandra does not sort rows when executing queries. Instead, a query either preserves the clustering order or reverses it
-when retrieving rows from a table. Even when `ORDER BY` is not used, a query result still preserves the clustering order.
-Also, remember that the clustering order applies to rows within the same partition and does not apply to rows that belong 
-to different partitions.
+A *distributed counter* is a 64-bit signed integer, whose value can be efficiently modified by concurrent transactions 
+without causing *race conditions*. 
+Counters are useful for keeping track of various statistics by counting events or adding up integer values. 
+To define a counter column, Cassandra Query Language provides data type `COUNTER`. There are 
+a number of restrictions on how counters can be used in Cassandra:
 
-For table `ratings_by_user` with `CLUSTERING ORDER BY (title ASC, year DESC)`, there are only two ordering options as shown below.
+- A counter cannot be set or reset. It can only be incremented or decremented. 
+- A counter value does not exist until the first increment or decrement operation is performed. 
+The first operation assumes the initial counter value of `0`.
+- A table with one or more counter columns cannot have non-counter columns other than primary key columns. 
+Counter columns cannot be primary key columns.
 
-✅ Q1. Use the clustering order:
+✅ As an example, let's create a new table to keep track of movie rating statistics:
 ```
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com'
-ORDER BY title ASC, year DESC;
-
--- ORDER BY can be omitted 
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com';
+DROP TABLE IF EXISTS movie_stats;
+CREATE TABLE movie_stats (
+  id UUID,
+  num_ratings COUNTER,
+  sum_ratings COUNTER,
+  PRIMARY KEY ((id))
+);
 ```
 
-✅ Q2. Use the reverse clustering order:
+✅ Update the counters to account for two ratings of *7* and *9* for the same movie: 
 ```
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com'
-ORDER BY title DESC, year ASC;
+UPDATE movie_stats 
+SET num_ratings = num_ratings + 1,
+    sum_ratings = sum_ratings + 7 
+WHERE id = 5069cc15-4300-4595-ae77-381c3af5dc5e;
+UPDATE movie_stats 
+SET num_ratings = num_ratings + 1,
+    sum_ratings = sum_ratings + 9 
+WHERE id = 5069cc15-4300-4595-ae77-381c3af5dc5e;
+SELECT * FROM movie_stats;
 ```
+
+
+✅ Next, alter table `movie_stats` to add another `COUNTER` column to keep track of how many times each movie was watched and 
+increment the counter value three times for one of the movies:
+<details>
+  <summary>Solution</summary> 
+
+```
+ALTER TABLE movie_stats ADD num_views COUNTER;
+
+UPDATE movie_stats 
+SET num_views = num_views + 1
+WHERE id = 5069cc15-4300-4595-ae77-381c3af5dc5e;
+UPDATE movie_stats 
+SET num_views = num_views + 1
+WHERE id = 5069cc15-4300-4595-ae77-381c3af5dc5e;
+UPDATE movie_stats 
+SET num_views = num_views + 1
+WHERE id = 5069cc15-4300-4595-ae77-381c3af5dc5e;
+
+SELECT * FROM movie_stats;
+```
+
+</details>
+
+<br/>
+
+It is important to understand that, unlike updates on other data type columns, counter increments and decrements 
+are *not idempotent*. An idempotent operation produces the same result when executed multiple times. It is 
+safe to retry a timed-out idempotent operation. However, in case of counters, replaying an increment or decrement operation may result in overcounting or undercounting. Therefore, counters should only be used when an absolute precision is not required.
 
 <!-- NAVIGATION -->
 <div id="navigation-top" class="navigation-top">

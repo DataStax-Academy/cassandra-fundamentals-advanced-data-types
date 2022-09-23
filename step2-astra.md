@@ -20,48 +20,44 @@
 
 <!-- CONTENT -->
 
-<div class="step-title">Syntax</div>
+<div class="step-title">Connect to Astra DB and create a database</div>
 
-To retrieve data from a table, Cassandra Query Language provides statement `SELECT` with the following simplified syntax:
+✅ Create an application token to access Astra. Skip this step is you already have a token.
 
-<pre class="non-executable-code">
-SELECT [DISTINCT] * | 
-       select_expression [AS column_name][ , ... ]
-FROM   [keyspace_name.] table_name 
-[WHERE partition_key_predicate
-  [AND clustering_key_predicate]] 
-[GROUP BY primary_key_column_name][ , ... ]
-[ORDER BY clustering_key_column_name ASC|DESC][ , ... ]
-[PER PARTITION LIMIT number]
-[LIMIT number]
-[ALLOW FILTERING]
-</pre>
+<ul>
+  <li>Sign in (or sign up) to your Astra account at <a href="https://astra.datastax.com" target="_blank">astra.datastax.com</a></li>
+  <li>Create an application token by following <a href="https://awesome-astra.github.io/docs/pages/astra/create-token/" target="_blank">these instructions</a></li>
+</ul>
 
-The `SELECT` clause specifies what to project into a final result. The projection list can include all columns using wildcard `*`, 
-individual column names, aggregates, such as `COUNT` and `AVG`, and numerous functions that work with write-time timestamps,
-TTLs, and values of various data types. It is even possible to create user-defined aggregates and functions using 
-statements `CREATE AGGREGATE` and `CREATE FUNCTION`.
+You can reuse the same token in our other scenarios, too.
 
-The `FROM` clause uses keyspace name and table name to identify an existing table. 
-If a keyspace name is omitted, the current working keyspace is used.
+✅ Setup Astra CLI by providing your application token:
+```
+astra setup
+```
 
-The `WHERE` clause supplies partition and row filtering predicates. At the very least, 
-*all* partition key column values should be provided. Predicates for *one or more* clustering key columns can 
-further restrict the result, as long as the primary key definition order is respected. All predicates must be *equality* predicates (`=` and `IN`), 
-except the last clustering key column predicate can be an *inequality* predicate (`>`, `<`, `>=`, `<=`).
+✅ List your existing Astra DB databases:
+```
+astra db list
+```
 
-The `GROUP BY` clause can group rows based on partition and clustering key columns, as long as the primary key definition order is respected.
+✅ Create database `cassandra-fundamentals` and keyspace `ks_advanced_data_types` if they do not exist:
+```
+astra db create cassandra-fundamentals -k ks_advanced_data_types --if-not-exist --wait
+```
 
-The `ORDER BY` clause can retrieve rows from each partition based on the clustering order declared in a table definition or its reverse.
-Even when `ORDER BY` is not used, a query result still preserves the clustering order.
+This operation may take a bit longer when creating a new database or resuming an existing hibernated database.
 
-The `PER PARTITION LIMIT` and `LIMIT` clauses are used to specify the maximum number of rows per partition or overall, respectively, 
-that can appear in a final result.
+✅ Verify that database `cassandra-fundamentals` is `ACTIVE` and keyspace `ks_advanced_data_types` exists:
+```
+astra db get cassandra-fundamentals
+```
 
-Finally, `ALLOW FILTERING` allows Cassandra to scan data to execute queries. While this relaxes many restrictions on what predicates can be used in the `WHERE` clause, 
-scanning is a very inefficient access pattern that should not be used in production. Only in rare cases, when a partition key is known, 
-scanning rows within one partition may be ok. Even then, a new table, materialized view or secondary index should be considered instead as a better alternative. 
-As a rule of thumb, you should avoid using `ALLOW FILTERING` in your queries and you can expect us to do the same in our examples.
+✅ Start the CQL shell and connect to database `cassandra-fundamentals` and keyspace `ks_advanced_data_types`:
+```
+clear
+astra db cqlsh cassandra-fundamentals -k ks_advanced_data_types
+```
 
 <!-- NAVIGATION -->
 <div id="navigation-bottom" class="navigation-bottom">

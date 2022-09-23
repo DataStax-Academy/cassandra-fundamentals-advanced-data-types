@@ -20,64 +20,55 @@
 
 <!-- CONTENT -->
 
-<div class="step-title">Querying table "ratings_by_user"</div>
+<div class="step-title">Maps</div>
 
-Table `ratings_by_user` stores information about movie ratings organized by users, 
-such that each partition contains all ratings left by one particular user.
-This table has multi-row partitions and 
-the primary key defined as `PRIMARY KEY ((email), title, year)`. 
-Let's first retrieve all rows from the table to learn how the data looks like and then focus 
-on predicates that the primary key can support.
+A *map* is a collection of key-value pairs, where each pair has a unique key. 
+In Cassandra, maps are intended for 
+storing a small number of key-value pairs of the same type. To define a map data type, 
+Cassandra Query Language provides construct `MAP<type1,type2>`, where `type1` and `type2` can refer to same or different CQL data types, including `INT`, `DATE`, `UUID` and so forth.
 
-✅ Q1. Retrieve all rows:
+✅ As an example, alter table `users` to add column `sessions` of type `MAP<TIMEUUID,INT>`:
 ```
-SELECT * FROM ratings_by_user;
-```
-
-✅ Q2. Retrieve one partition:
-```
-SELECT * FROM ratings_by_user
-WHERE email = 'joe@datastax.com';
+ALTER TABLE users ADD sessions MAP<TIMEUUID,INT>;
+SELECT name, sessions FROM users;
 ```
 
-✅ Q3. Retrieve two partitions:
+✅ Add two sessions with `TIMEUUID` keys and `INT` duration values for one of the users:
 ```
-SELECT * FROM ratings_by_user
-WHERE email IN ('joe@datastax.com',
-                'jen@datastax.com');
-```
-
-✅ Q4. Retrieve one row:
-```
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com'
-  AND title = 'Alice in Wonderland'
-  AND year  = 2010;
+UPDATE users 
+SET sessions = { now(): 32, 
+    e22deb70-b65f-11ea-9aac-99396fc4f757: 7 }
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+SELECT name, sessions FROM users;
 ```
 
-✅ Q5 - Q8. Retrieve a subset of rows from a partition:
+✅ Update a duration value for one of the sessions:
 ```
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com'
-  AND title = 'Alice in Wonderland'
-  AND year IN (2010, 1951);
+UPDATE users 
+SET sessions[e22deb70-b65f-11ea-9aac-99396fc4f757] = 9 
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+SELECT name, sessions FROM users;
 ```
+
+✅ Next, alter table `users` to add column `preferences` and 
+add key-value pairs (*color-scheme*: *dark*) and (*quality*: *auto*) for one of the users:
+<details>
+  <summary>Solution</summary> 
+
 ```
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com'
-  AND title = 'Alice in Wonderland'
-  AND year  > 1950;
+ALTER TABLE users ADD preferences MAP<TEXT,TEXT>;
+
+UPDATE users 
+SET preferences['color-scheme'] = 'dark'
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+UPDATE users 
+SET preferences['quality'] = 'auto' 
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+
+SELECT name, preferences FROM users;
 ```
-```
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com'
-  AND title = 'Alice in Wonderland';
-```
-```
-SELECT * FROM ratings_by_user
-WHERE email = 'jim@datastax.com'
-  AND title < 'Charlie and the Chocolate Factory';
-```
+
+</details>
 
 <!-- NAVIGATION -->
 <div id="navigation-bottom" class="navigation-bottom">

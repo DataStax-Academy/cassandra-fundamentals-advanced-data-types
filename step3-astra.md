@@ -20,118 +20,110 @@
 
 <!-- CONTENT -->
 
-<div class="step-title">Connect to Astra DB and create a database</div>
+<div class="step-title">UUIDs</div>
 
-✅ Create an application token to access Astra. Skip this step is you already have a token.
+A *universally unique identifier (UUID)* is a 128-bit number that can be automatically generated and 
+used to identify an entity or relationship in a Cassandra database. UUIDs 
+provide an efficient way to assign unique identifiers and help to prevent accidental upserts or eliminate race conditions. 
 
-<ul>
-  <li>Sign in (or sign up) to your Astra account at <a href="https://astra.datastax.com" target="_blank">astra.datastax.com</a></li>
-  <li>Create an application token by following <a href="https://awesome-astra.github.io/docs/pages/astra/create-token/" target="_blank">these instructions</a></li>
-</ul>
+Cassandra Query Language supports the following two UUID data types:
+- `UUID` is a *Version 4 UUID* that is randomly generated. To generate a value of type `UUID`, you can use function `uuid()`.
+- `TIMEUUID` is a *Version 1 UUID* that is generated based on a MAC address and a timestamp. 
+To generate a value of type `TIMEUUID`, you can use function `now()`. When needed, the timestamp component of a `TIMEUUID` value 
+can be extracted using functions `unixTimestampOf()` or `dateOf()`. 
+Moreover, `TIMEUUID` values in clustering columns are automatically ordered based on their underlying timestamps and
+can also be retrieved based on the timestamps using functions 
+`minTimeuuid(timestamp)` and `maxTimeuuid(timestamp)`. 
 
-You can reuse the same token in our other scenarios, too.
-
-✅ Setup Astra CLI by providing your application token:
-```
-astra setup
-```
-
-✅ List your existing Astra DB databases:
-```
-astra db list
-```
-
-✅ Create database `cassandra-fundamentals` and keyspace `ks_queries` if they do not exist:
-```
-astra db create cassandra-fundamentals -k ks_queries --if-not-exist --wait
-```
-
-This operation may take a bit longer when creating a new database or resuming an existing hibernated database.
-
-✅ Verify that database `cassandra-fundamentals` is `ACTIVE` and keyspace `ks_queries` exists:
-```
-astra db get cassandra-fundamentals
-```
-
-✅ Start the CQL shell and connect to database `cassandra-fundamentals` and keyspace `ks_queries`:
-```
-clear
-astra db cqlsh cassandra-fundamentals -k ks_queries
-```
-
-✅ Create and populate the tables:
+✅ As an example, let's create table `users` with partition key `id` of type `UUID` and insert two rows:
 ```
 CREATE TABLE IF NOT EXISTS users (
-  email TEXT,
+  id UUID,
   name TEXT,
   age INT,
-  date_joined DATE,
-  PRIMARY KEY ((email))
+  PRIMARY KEY ((id))
 );
-INSERT INTO users (email, name, age, date_joined) 
-VALUES ('joe@datastax.com', 'Joe', 25, '2020-01-01');
-INSERT INTO users (email, name, age, date_joined) 
-VALUES ('jen@datastax.com', 'Jen', 27, '2020-01-01');
-INSERT INTO users (email, name, age, date_joined) 
-VALUES ('jim@datastax.com', 'Jim', 31, '2020-05-07');
 
+INSERT INTO users (id, name, age) 
+VALUES (7902a572-e7dc-4428-b056-0571af415df3, 
+       'Joe', 25);
+INSERT INTO users (id, name, age) 
+VALUES (uuid(), 'Jen', 27);
+
+SELECT * FROM users;
+```
+
+✅ Next, create table `movies` with partition key `id` of type `UUID` and insert the following two rows: 
+
+| id                                   | title             | year | duration |
+|--------------------------------------|-------------------|------|----------|
+| 5069cc15-4300-4595-ae77-381c3af5dc5e |Alice in Wonderland| 2010 |   108    |
+| uuid()                               |Alice in Wonderland| 1951 |    75    |
+
+<br/>
+
+<details>
+  <summary>Solution</summary>
+
+```
 CREATE TABLE IF NOT EXISTS movies (
+  id UUID,
   title TEXT,
   year INT,
   duration INT,
-  avg_rating FLOAT,
-  PRIMARY KEY ((title, year))
+  PRIMARY KEY ((id))
 );
-INSERT INTO movies (title, year, duration, avg_rating) 
-VALUES ('Alice in Wonderland', 2010, 108, 8.33);
-INSERT INTO movies (title, year, duration, avg_rating) 
-VALUES ('Alice in Wonderland', 1951, 75, 6.5);
-INSERT INTO movies (title, year, duration, avg_rating) 
-VALUES ('Edward Scissorhands', 1990, 98, 8.5);
 
-CREATE TABLE IF NOT EXISTS ratings_by_user (
-  email TEXT,
-  title TEXT,
-  year INT,
-  rating INT,
-  PRIMARY KEY ((email), title, year)
-) WITH CLUSTERING ORDER BY (title ASC, year DESC);
-INSERT INTO ratings_by_user (email, title, year, rating) 
-VALUES ('joe@datastax.com', 'Alice in Wonderland', 2010, 9);
-INSERT INTO ratings_by_user (email, title, year, rating)  
-VALUES ('joe@datastax.com', 'Edward Scissorhands', 1990, 10);
-INSERT INTO ratings_by_user (email, title, year, rating) 
-VALUES ('jen@datastax.com', 'Alice in Wonderland', 2010, 10);
-INSERT INTO ratings_by_user (email, title, year, rating)  
-VALUES ('jen@datastax.com', 'Alice in Wonderland', 1951, 8);
-INSERT INTO ratings_by_user (email, title, year, rating) 
-VALUES ('jim@datastax.com', 'Alice in Wonderland', 2010, 6);
-INSERT INTO ratings_by_user (email, title, year, rating)  
-VALUES ('jim@datastax.com', 'Edward Scissorhands', 1990, 7);
-INSERT INTO ratings_by_user (email, title, year, rating)  
-VALUES ('jim@datastax.com', 'Alice in Wonderland', 1951, 5);
+INSERT INTO movies (id, title, year, duration) 
+VALUES (5069cc15-4300-4595-ae77-381c3af5dc5e, 
+       'Alice in Wonderland', 2010, 108);
+INSERT INTO movies (id, title, year, duration) 
+VALUES (uuid(), 'Alice in Wonderland', 1951, 75);
 
-CREATE TABLE IF NOT EXISTS ratings_by_movie (
-  title TEXT,
-  year INT,
-  email TEXT,
-  rating INT,
-  PRIMARY KEY ((title, year), email)
+SELECT * FROM movies;
+```
+
+</details>
+
+<br/>
+
+✅ Finally, study this more advanced example, where `TIMEUUID` is used to both guarantee uniqueness and 
+provide a timestamp for each row in table `comments_by_user`:
+```
+CREATE TABLE IF NOT EXISTS comments_by_user (
+  user_id UUID,
+  comment_id TIMEUUID,
+  movie_id UUID,
+  comment TEXT,
+  PRIMARY KEY ((user_id), comment_id, movie_id)
 );
-INSERT INTO ratings_by_movie (email, title, year, rating) 
-VALUES ('joe@datastax.com', 'Alice in Wonderland', 2010, 9);
-INSERT INTO ratings_by_movie (email, title, year, rating)  
-VALUES ('joe@datastax.com', 'Edward Scissorhands', 1990, 10);
-INSERT INTO ratings_by_movie (email, title, year, rating) 
-VALUES ('jen@datastax.com', 'Alice in Wonderland', 2010, 10);
-INSERT INTO ratings_by_movie (email, title, year, rating)  
-VALUES ('jen@datastax.com', 'Alice in Wonderland', 1951, 8);
-INSERT INTO ratings_by_movie (email, title, year, rating) 
-VALUES ('jim@datastax.com', 'Alice in Wonderland', 2010, 6);
-INSERT INTO ratings_by_movie (email, title, year, rating)  
-VALUES ('jim@datastax.com', 'Edward Scissorhands', 1990, 7);
-INSERT INTO ratings_by_movie (email, title, year, rating)  
-VALUES ('jim@datastax.com', 'Alice in Wonderland', 1951, 5);
+
+INSERT INTO comments_by_user (user_id, comment_id, movie_id, comment) 
+VALUES (7902a572-e7dc-4428-b056-0571af415df3, 
+        63b00000-bfde-11d3-8080-808080808080, 
+        5069cc15-4300-4595-ae77-381c3af5dc5e, 
+        'First watched in 2000');
+INSERT INTO comments_by_user (user_id, comment_id, movie_id, comment) 
+VALUES (7902a572-e7dc-4428-b056-0571af415df3, 
+        9ab0c000-f668-11de-8080-808080808080, 
+        5069cc15-4300-4595-ae77-381c3af5dc5e, 
+        'Watched again in 2010');
+INSERT INTO comments_by_user (user_id, comment_id, movie_id, comment) 
+VALUES (7902a572-e7dc-4428-b056-0571af415df3, 
+        now(), 
+        5069cc15-4300-4595-ae77-381c3af5dc5e, 
+        'Watched again today');        
+
+SELECT comment_id, dateOf(comment_id) AS date, comment
+FROM comments_by_user
+WHERE user_id = 7902a572-e7dc-4428-b056-0571af415df3;
+
+SELECT comment_id, dateOf(comment_id) AS date, comment
+FROM comments_by_user
+WHERE user_id = 7902a572-e7dc-4428-b056-0571af415df3
+  AND comment_id > maxTimeuuid('1999-01-01 00:00+0000')
+  AND comment_id < minTimeuuid('2019-01-01 00:00+0000')
+ORDER BY comment_id DESC;
 ```
 
 <!-- NAVIGATION -->

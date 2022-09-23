@@ -20,34 +20,83 @@
 
 <!-- CONTENT -->
 
-<div class="step-title">Grouping rows</div>
+<div class="step-title">UDTs</div>
 
-Some queries may need to organize rows into groups 
-and compute aggregates for each individual group. In Cassandra, 
-grouping is always based on partition and clustering key columns and
-must follow the primary key definition order. In other words, a group 
-is always defined as a set of rows belonging to the same partition.
-Consider the following query examples.
+A *user-defined type (UDT)* is a custom data type composed of one or more named and typed fields. 
+UDT fields can be of simple types, collection types or even other UDTs. 
+Cassandra Query Language provides statements `CREATE TYPE`, `ALTER TYPE`, `DROP TYPE` and `DESCRIBE TYPE` 
+to work with UDTs.
 
-✅ Q1. Calculate average ratings for all movies:
+✅ Let's define UDT `ADDRESS` with four fields:
 ```
-SELECT   title, year,
-         AVG(CAST(rating AS FLOAT)) AS avg_rating
-FROM     ratings_by_movie
-GROUP BY title, year;
+CREATE TYPE ADDRESS (
+    street TEXT,
+    city TEXT,
+    state TEXT,
+    postal_code TEXT
+);
 ```
 
-✅ Q2. Calculate the number of ratings per user:
+✅ Alter table `users` to add column `address` of type `ADDRESS`:
+```
+ALTER TABLE users ADD address ADDRESS;
+SELECT name, address FROM users;
+```
+
+✅ Add an address for one of the users:
+```
+UPDATE users 
+SET address = { street: '1100 Congress Ave',
+                city: 'Austin',
+                state: 'Texas',
+                postal_code: '78701' }
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+SELECT name, address FROM users
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+
+UPDATE users 
+SET address.state = 'TX'
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+SELECT name, 
+       address.street      AS street, 
+       address.city        AS city, 
+       address.state       AS state,
+       address.postal_code AS zip 
+FROM users
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+```
+
+✅ Next, alter table `users` to add column `previous_addresses` and 
+add at least two previous addresses for one of the users:
 <details>
-  <summary>Solution</summary>
-  
+  <summary>Solution</summary> 
+
 ```
-SELECT   email, COUNT(rating) AS n
-FROM     ratings_by_user
-GROUP BY email;
+ALTER TABLE users 
+ADD previous_addresses LIST<FROZEN<ADDRESS>>;
+
+UPDATE users 
+SET previous_addresses = [
+              { street: '10th and L St',
+                city: 'Sacramento',
+                state: 'CA',
+                postal_code: '95814' } ]
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+SELECT name, previous_addresses FROM users
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+
+UPDATE users 
+SET previous_addresses = previous_addresses + [
+              { street: 'State St and Washington Ave',
+                city: 'Albany',
+                state: 'NY',
+                postal_code: '12224' } ]
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
+SELECT name, address, previous_addresses FROM users
+WHERE id = 7902a572-e7dc-4428-b056-0571af415df3;
 ```
 
-</details> 
+</details>
 
 <!-- NAVIGATION -->
 <div id="navigation-bottom" class="navigation-bottom">
