@@ -37,7 +37,8 @@ can also be retrieved based on the timestamps using functions
 
 ✅ As an example, let's create table `users` with partition key `id` of type `UUID` and insert two rows:
 ```
-CREATE TABLE IF NOT EXISTS users (
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
   id UUID,
   name TEXT,
   age INT,
@@ -66,7 +67,8 @@ SELECT * FROM users;
   <summary>Solution</summary>
 
 ```
-CREATE TABLE IF NOT EXISTS movies (
+DROP TABLE IF EXISTS movies;
+CREATE TABLE movies (
   id UUID,
   title TEXT,
   year INT,
@@ -90,7 +92,8 @@ SELECT * FROM movies;
 ✅ Finally, study this more advanced example, where `TIMEUUID` is used to both guarantee uniqueness and 
 provide a timestamp for each row in table `comments_by_user`:
 ```
-CREATE TABLE IF NOT EXISTS comments_by_user (
+DROP TABLE IF EXISTS comments_by_user;
+CREATE TABLE comments_by_user (
   user_id UUID,
   comment_id TIMEUUID,
   movie_id UUID,
